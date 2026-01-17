@@ -4,6 +4,8 @@ asyncio.set_event_loop(asyncio.new_event_loop())
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import sqlite3, time
+from flask import Flask
+from threading import Thread
 
 # ================= CONFIG =================
 API_ID = 33979655
@@ -201,10 +203,12 @@ def req_handler(_, msg):
     db.commit()
     msg.reply("✔️ Withdraw আবেদন পাঠানো হয়েছে। Admin অনুমোদন করবে।")
 
-    # Admin notification
+    # Admin notification with user points
+    user = get_user(uid)
     app.send_message(ADMIN_ID,
                      f"💸 New Withdraw Request\n\n"
                      f"👤 User ID: {uid}\n"
+                     f"💰 Current Points: {user[1]}\n"
                      f"💳 Method: {method}\n"
                      f"📱 Number: {number}\n"
                      f"💰 Amount: {amount}")
@@ -258,6 +262,18 @@ def admin_broadcast(_, msg):
         except:
             pass
     msg.reply("✔️ Broadcast sent!")
+
+# ================= FLASK SERVER FOR 24/7 =================
+flask_app = Flask("")
+
+@flask_app.route("/")
+def home():
+    return "Bot is alive!"
+
+def run():
+    flask_app.run(host="0.0.0.0", port=8080)
+
+Thread(target=run).start()
 
 # ================= RUN BOT =================
 print("🐍 Bot started!")
